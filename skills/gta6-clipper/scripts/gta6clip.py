@@ -20,7 +20,7 @@ SKILL = Path(__file__).resolve().parent.parent
 RUNS = Path(os.environ.get("GTA6_CLIPS_DIR", Path.home() / "GTA6-Clips"))
 CFG = json.loads((SKILL / "config.json").read_text()) if (SKILL / "config.json").exists() else {}
 CHUNK_SEC = 12 * 60
-YTDLP = [sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet", "--no-progress"]
+YTDLP = [sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet", "--no-progress", "--enable-file-urls"]
 # ffmpeg ignores HTTPS_PROXY; behind a proxy (e.g. a cloud session) hand it over explicitly
 _PROXY = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
 if _PROXY:
@@ -243,6 +243,8 @@ def transcribe(wav, out_base, words=False):
 
 def prep_one(url, cookies, force=False):
     t0 = time.time()
+    if os.path.isfile(url):  # a video file the user uploaded (e.g. a YouTube VOD saved elsewhere)
+        url = Path(url).resolve().as_uri()
     meta = ytdlp_json(url, cookies, ["--no-playlist"])
     if meta.get("live_status") == "is_live" and meta.get("extractor_key", "").lower().startswith("youtube"):
         return {"url": url, "error": "still live on YouTube: clip it once the replay is up (Twitch archives work while live)"}
@@ -594,6 +596,13 @@ def render_one(rd, info, c, n, cookies, keep, local_src=None, src_start=None):
     if local_src is not None:
         a = src_start
     src = Path(local_src) if local_src is not None else next(work.glob("src.*"), None)
+    if not src and info["webpage_url"].startswith("file://"):  # uploaded file: cut the section locally
+        from urllib.parse import unquote, urlparse
+        r = run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{a:.1f}", "-t", f"{b - a:.1f}",
+                 "-i", unquote(urlparse(info["webpage_url"]).path), "-c", "copy", str(work / "src.mp4")])
+        src = next(work.glob("src.mp4"), None)
+        if not src:
+            raise RuntimeError("section cut failed: " + r.stderr[-300:])
     if not src:
         r = run(YTDLP + cookie_args(cookies) + ["--no-playlist", "-f",
                 "bv*[height<=1080][fps<=60]+ba/b[height<=1080]/bv*+ba/b", "--download-sections", f"*{a:.1f}-{b:.1f}",

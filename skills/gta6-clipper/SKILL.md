@@ -18,6 +18,10 @@ If `uname` is Linux, use `bash "$S/scripts/setup-linux.sh"` instead of setup.sh 
 installs the venv and models; takes ~5 min the first time). Everything else is the same, except:
 - Kick works. YouTube refuses cloud servers ("confirm you're not a bot") unless `--cookies <cookies.txt>`
   is given; Twitch VOD downloads are unreliable from the cloud.
+- YouTube from the cloud, two ways: (1) the user uploads a `cookies.txt` exported from a logged-in
+  (preferably spare) Google account; pass `--cookies <path>` to both prep and render. (2) The user
+  uploads the video file itself: `prep <path/to/video.mp4>` works on local files (render cuts from it
+  and never deletes it).
 - There's no `open`: when clips are done, send them to the user (SendUserFile) instead.
 - The network must allow the stream sites (unrestricted network access in the cloud environment).
 
