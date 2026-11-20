@@ -21,6 +21,11 @@ RUNS = Path(os.environ.get("GTA6_CLIPS_DIR", Path.home() / "GTA6-Clips"))
 CFG = json.loads((SKILL / "config.json").read_text()) if (SKILL / "config.json").exists() else {}
 CHUNK_SEC = 12 * 60
 YTDLP = [sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet", "--no-progress"]
+# ffmpeg ignores HTTPS_PROXY; behind a proxy (e.g. a cloud session) hand it over explicitly
+_PROXY = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+if _PROXY:
+    YTDLP += ["--downloader-args", f"ffmpeg_i:-http_proxy {_PROXY}"]
+WHISPER_CLI = CFG.get("whisper_cli") if CFG.get("whisper_cli") and Path(CFG["whisper_cli"]).exists() else "whisper-cli"
 GTA_RE = re.compile(r"\bgta\s*(6|vi)\b|grand theft auto\s*(6|vi)\b", re.I)
 
 
@@ -221,7 +226,7 @@ def chat_spikes(chat_file):
 
 def transcribe(wav, out_base, words=False):
     model = CFG.get("whisper_model") or os.path.expanduser("~/.cache/whisper-cpp/ggml-small.bin")
-    cmd = ["whisper-cli", "-m", model, "-f", str(wav), "-l", "en", "-np", "-mc", "0", "-oj", "-of", str(out_base)]
+    cmd = [WHISPER_CLI, "-m", model, "-t", str(os.cpu_count() or 4), "-f", str(wav), "-l", "en", "-np", "-mc", "0", "-oj", "-of", str(out_base)]
     if words:
         cmd += ["-ml", "1", "-sow", "-ojf"]
     r = run(cmd)
@@ -464,8 +469,10 @@ def find_facecam(video, W, H):
 
 def font(size):
     from PIL import ImageFont
-    for f in ("/System/Library/Fonts/Supplemental/Arial Black.ttf", "/System/Library/Fonts/Supplemental/Impact.ttf"):
-        if Path(f).exists():
+    for f in (CFG.get("font") or "", "/System/Library/Fonts/Supplemental/Arial Black.ttf",
+              "/System/Library/Fonts/Supplemental/Impact.ttf", "/usr/share/fonts/opentype/inter/Inter-Black.otf",
+              "/usr/share/fonts/opentype/inter/Inter-ExtraBold.otf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"):
+        if f and Path(f).exists():
             return ImageFont.truetype(f, size)
     return ImageFont.load_default()
 

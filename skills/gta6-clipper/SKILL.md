@@ -1,6 +1,6 @@
 ---
 name: gta6-clipper
-description: GTA 6 Clipper. Turns GTA 6 streams into ready-to-post vertical clips (facecam on top, gameplay below, hook title, word-by-word captions, post caption + hashtags). Activates on "set up the GTA 6 clipper", "clip this stream <link>", "find me today's biggest GTA 6 streams and clip them", /gta6-clipper, /clip, or any request to clip a YouTube, Twitch or Kick stream. Downloads audio only, transcribes on the Mac, marks loud moments and chat spikes, the Claude session itself reads the transcript 12 minutes at a time and scores moments (no API keys), then downloads only the needed minutes and renders 3 clips per stream. Works on a Claude subscription or free via Ollama (ollama launch claude). Mac only.
+description: GTA 6 Clipper. Turns GTA 6 streams into ready-to-post vertical clips (facecam on top, gameplay below, hook title, word-by-word captions, post caption + hashtags). Activates on "set up the GTA 6 clipper", "clip this stream <link>", "find me today's biggest GTA 6 streams and clip them", /gta6-clipper, /clip, or any request to clip a YouTube, Twitch or Kick stream. Downloads audio only, transcribes on the Mac, marks loud moments and chat spikes, the Claude session itself reads the transcript 12 minutes at a time and scores moments (no API keys), then downloads only the needed minutes and renders 3 clips per stream. Works on a Claude subscription or free via Ollama (ollama launch claude). Mac, or Linux / Claude Code cloud sessions via setup-linux.sh (Kick works best there).
 ---
 
 # GTA 6 Clipper
@@ -11,6 +11,15 @@ so it runs on the user's Claude subscription, or on a local model through Ollama
 
 `S` = this skill's folder. Always run Python through the skill's venv:
 `"$S/.venv/bin/python" "$S/scripts/gta6clip.py" ...`. Quote paths (they may contain spaces).
+
+## Linux / Claude Code cloud session (e.g. driven from an iPad)
+
+If `uname` is Linux, use `bash "$S/scripts/setup-linux.sh"` instead of setup.sh (builds whisper.cpp,
+installs the venv and models; takes ~5 min the first time). Everything else is the same, except:
+- Kick works. YouTube refuses cloud servers ("confirm you're not a bot") unless `--cookies <cookies.txt>`
+  is given; Twitch VOD downloads are unreliable from the cloud.
+- There's no `open`: when clips are done, send them to the user (SendUserFile) instead.
+- The network must allow the stream sites (unrestricted network access in the cloud environment).
 
 ## 0. "Set up the GTA 6 clipper"
 
