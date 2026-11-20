@@ -320,7 +320,15 @@ def cmd_clip(a):
             lst = work / "segs.txt"
             lst.write_text("".join(f"file '{(rd / 'buffer' / f).resolve()}'\n" for _, _, f in need))
             src = work / "src.ts"
-            g.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(src)])
+            sizes = [g.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
+                            "-of", "csv=p=0", str(rd / "buffer" / f)]).stdout.strip().split("\n")[0] for _, _, f in need]
+            if len(set(sizes)) > 1:  # quality switched mid-buffer (e.g. a stitched-in ad): re-encode to one size
+                w, h = max(set(sizes), key=sizes.count).split(",")[:2]
+                g.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst),
+                       "-vf", f"scale={w}:{h},setsar=1", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
+                       "-c:a", "aac", "-b:a", "160k", "-f", "mpegts", str(src)])
+            else:
+                g.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(src)])
             try:
                 out, mode = g.render_one(rd, info, c, n, None, a.keep, local_src=src, src_start=need[0][0])
                 rendered.append({k: v for k, v in c.items()} | {"file": str(out), "layout": mode})
