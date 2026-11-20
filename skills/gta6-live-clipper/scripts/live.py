@@ -69,7 +69,8 @@ class Daemon:
         cmd = g.YTDLP + g.cookie_args(self.cfg.get("cookies")) + [
             "-f", f"best[height<={q}]/bv*[height<={q}]+ba/best", "-o", "-", self.cfg["url"]]
         ff = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", "pipe:0", "-map", "0:v:0", "-map", "0:a:0",
-              "-c", "copy", "-f", "segment", "-segment_time", str(SEG), "-reset_timestamps", "1",
+              # cut by wall clock: Twitch ads make stream timestamps jump/go backwards, which stalls pts-based cuts
+              "-c", "copy", "-f", "segment", "-segment_time", str(SEG), "-segment_atclocktime", "1", "-reset_timestamps", "1",
               "-segment_list", str(self.rd / "segs.csv"), "-segment_list_type", "csv",
               str(self.seg_dir / "seg_%05d.ts")]
         self.t0_wall = time.time()
@@ -128,11 +129,24 @@ class Daemon:
             for r in csv.reader(p.read_text().splitlines()):
                 if len(r) >= 3:
                     rows.append((r[0], float(r[1]), float(r[2])))
-        # ffmpeg writes cumulative times; normalise to stream time from the first segment
-        if rows:
-            base = rows[0][1]
-            rows = [(f, s - base, e - base) for f, s, e in rows]
-        return rows
+        # Stream timestamps can't be trusted (ads make them jump), so place segments by wall clock:
+        # each segment ends when ffmpeg closed it (file mtime) and starts where the previous one ended.
+        # Times are remembered in seg_times.json because the buffer deletes old files.
+        known = jload(self.rd / "seg_times.json", {})
+        t0 = self.state.get("started_wall") or self.t0_wall or 0
+        out, prev_end = [], None
+        for f, s, e in rows:
+            if f not in known:
+                fp = self.seg_dir / f
+                if not fp.exists():
+                    continue
+                end = os.path.getmtime(fp) - t0
+                start = prev_end if prev_end is not None else max(0.0, end - (e - s))
+                known[f] = [start, end]
+            prev_end = known[f][1]
+            out.append((f, known[f][0], known[f][1]))
+        jsave(self.rd / "seg_times.json", known)
+        return out
 
     def process_segment(self, fname, st, en):
         f = self.seg_dir / fname
