@@ -226,7 +226,7 @@ def chat_spikes(chat_file):
 
 def transcribe(wav, out_base, words=False):
     model = CFG.get("whisper_model") or os.path.expanduser("~/.cache/whisper-cpp/ggml-small.bin")
-    cmd = [WHISPER_CLI, "-m", model, "-t", str(os.cpu_count() or 4), "-f", str(wav), "-l", "en", "-np", "-mc", "0", "-oj", "-of", str(out_base)]
+    cmd = [WHISPER_CLI, "-m", model, "-t", os.environ.get("GTA6_WHISPER_THREADS", str(os.cpu_count() or 4)), "-f", str(wav), "-l", "en", "-np", "-mc", "0", "-oj", "-of", str(out_base)]
     if words:
         cmd += ["-ml", "1", "-sow", "-ojf"]
     r = run(cmd)

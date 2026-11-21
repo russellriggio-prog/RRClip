@@ -18,6 +18,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent.parent
 VOD = Path(os.environ.get("GTA6_CLIPPER_DIR", HERE.parent / "gta6-clipper"))
 sys.path.insert(0, str(VOD / "scripts"))
+# Each live stream transcribes every minute; with several streams on one machine, all-core whisper
+# runs oversubscribe the CPU and slow to a crawl. Give each stream a slice of the cores.
+os.environ.setdefault("GTA6_WHISPER_THREADS", str(max(1, (os.cpu_count() or 4) // 2)))
 import gta6clip as g  # noqa: E402
 
 RUNS = Path(os.environ.get("GTA6_LIVE_DIR", Path.home() / "GTA6-Clips" / "live"))
