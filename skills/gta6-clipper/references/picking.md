@@ -58,7 +58,7 @@ Most chunks have 0-2 real candidates. Many have none. That's normal: write `[]`.
     "hook": "TIM SEES VICE CITY FOR THE FIRST TIME",
     "title": "Tim can't believe how GTA 6's Vice City looks",
     "caption": "He wasn't ready for this 😭 Would you play this on day one?",
-    "hashtags": ["#GTA6", "#GTAVI", "#TimTheTatman", "#gaming", "#gta6clips"],
+    "hashtags": ["#GTA6", "#TimTheTatman", "#gta6gameplay", "#gaming", "#gta6reaction"],
     "why": "pure disbelief, chat x5, no context needed"
   }
 ]
@@ -69,4 +69,11 @@ Most chunks have 0-2 real candidates. Many have none. That's normal: write `[]`.
   "TIM SWEARS HE'S NOT REWINDING FOR THE STRIP CLUB".
 - `title`: post title (YouTube Shorts / TikTok), sentence case, under 70 characters.
 - `caption`: 1-2 short lines + a question that gets comments. No links.
-- `hashtags`: 4-6. Always `#GTA6` and the streamer's name tag.
+- `hashtags`: 4-5, no more (extra tags don't help reach; hook and watch-time do). Always, in this order:
+  `#GTA6`, the streamer's name tag (e.g. `#IShowSpeed`), then 2-3 from the most-used gaming tags:
+  `#gta6gameplay` (most-used GTA 6 tag on TikTok/Reels, Nov 2026), `#gaming`, and one about the moment
+  (`#gta6funny`, `#gta6fails`, `#gta6reaction`, `#gta6ending`). Skip `#fyp`/`#viral` (no measurable effect).
+  When posting, TikTok also gets `#gamingontiktok` and Instagram `#gamingreels`.
+- `caption`: put "GTA 6" and the streamer's name in the first line (both platforms index caption words for
+  search), then one short line and a question that invites comments. Finale/story clips start with
+  "⚠️ GTA 6 spoilers".
