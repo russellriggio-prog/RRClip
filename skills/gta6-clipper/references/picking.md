@@ -38,7 +38,11 @@ Most chunks have 0-2 real candidates. Many have none. That's normal: write `[]`.
 
 ## Boundaries
 
-- 20-60 seconds. Start ON the hook (the first line must grab), not on the build-up 30 seconds earlier.
+- Target 61-75 seconds: TikTok's Creator Rewards only pays for videos over 1 minute. Get there by keeping
+  the reaction and aftermath (the streamer talking about what just happened), never by adding dead air or
+  build-up before the hook. If a great moment can't honestly stretch past 60s, keep it short (20-60s) rather
+  than padding it; it still works on YouTube Shorts and Reels, it just won't earn on TikTok.
+- Start ON the hook (the first line must grab), not on the build-up 30 seconds earlier.
 - End right after the payoff (the punchline, the reaction peaks, the take lands). Don't trail off.
 - Use the `[HH:MM:SS]` timestamps from the chunk. `end` = start of the first line AFTER the moment.
 
